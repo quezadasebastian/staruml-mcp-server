@@ -7,6 +7,7 @@ Un servidor basado en el estándar **Model Context Protocol (MCP)** en TypeScrip
 ## 🎯 ¿Qué problema resuelve?
 
 Cuando los modelos de lenguaje intentan generar modelos UML nativos para herramientas de escritorio, suelen fallar en dos aspectos críticos:
+
 1. **La capa geométrica (`views`):** Un archivo `.mdj` requiere definir coordenadas exactas (`left`, `top`, `width`, `height`) y puntos ortogonales de conexión (`points`). Sin ellos, los elementos se amontonan en la coordenada $(0,0)$ o el archivo queda corrupto.
 2. **La coherencia referencial:** Cada entidad requiere identificadores de 24 caracteres únicos vinculados mediante punteros de referencia (`$ref`).
 
@@ -16,19 +17,20 @@ Este servidor abstrae toda esa complejidad matemática y estructural: el agente 
 
 ## ✨ Características Principales
 
-* **Auto-Layout Determinista:** Integra `dagre` para calcular la posición óptima de nodos y enrutamiento de conectores, evitando colisiones o superposiciones.
-* **Soporte Multi-Diagrama:**
-  * **Casos de Uso:** Actores, fronteras de sistema (`systemBoundary`), asociaciones, `<<include>>` y `<<extend>>`.
-  * **Diagramas de Clases:** Atributos tipados, operaciones, visibilidades, herencia, interfaces, composiciones y agregaciones.
-  * **Diagramas de Secuencia:** Líneas de vida (*lifelines*) y flujo cronológico de mensajes síncronos, asíncronos y respuestas.
-* **Inspección Bidireccional (`inspect_mdj_model`):** Permite a los agentes de IA leer y resumir proyectos `.mdj` existentes antes de refactorizarlos o extenderlos.
-* **Transporte Estándar:** Comunicación lista para producción mediante Stdio (`@modelcontextprotocol/sdk`).
+- **Auto-Layout Determinista:** Integra `dagre` para calcular la posición óptima de nodos y enrutamiento de conectores, evitando colisiones o superposiciones.
+- **Soporte Multi-Diagrama:**
+  - **Casos de Uso:** Actores, fronteras de sistema (`systemBoundary`), asociaciones, `<<include>>` y `<<extend>>`.
+  - **Diagramas de Clases:** Atributos tipados, operaciones, visibilidades, herencia, interfaces, composiciones y agregaciones.
+  - **Diagramas de Secuencia:** Líneas de vida (_lifelines_) y flujo cronológico de mensajes síncronos, asíncronos y respuestas.
+- **Inspección Bidireccional (`inspect_mdj_model`):** Permite a los agentes de IA leer y resumir proyectos `.mdj` existentes antes de refactorizarlos o extenderlos.
+- **Transporte Estándar:** Comunicación lista para producción mediante Stdio (`@modelcontextprotocol/sdk`).
 
 ---
 
 ## Installation & Build
 
 ### Prerequisites
+
 - Node.js v18 or higher
 - npm v9 or higher
 
@@ -58,6 +60,7 @@ npm run generate-sample
 ### 1. Claude Desktop (`claude_desktop_config.json`)
 
 Locate your Claude configuration file:
+
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
@@ -68,15 +71,13 @@ Add the server under `mcpServers`:
   "mcpServers": {
     "staruml": {
       "command": "node",
-      "args": [
-        "c:/Users/Mi Equipo/Documents/staruml-mcp-server/dist/index.js"
-      ]
+      "args": ["/staruml-mcp-server/dist/index.js"]
     }
   }
 }
 ```
 
-*(Replace the path with your actual absolute path to `dist/index.js`).*
+_(Replace the path with your actual absolute path to `dist/index.js`)._
 
 ### 2. Antigravity / Agent CLI Configuration
 
@@ -87,9 +88,7 @@ Add to your MCP settings file:
   "mcpServers": {
     "staruml": {
       "command": "node",
-      "args": [
-        "C:\\Users\\Mi Equipo\\Documents\\staruml-mcp-server\\dist\\index.js"
-      ]
+      "args": ["\\staruml-mcp-server\\dist\\index.js"]
     }
   }
 }
@@ -100,9 +99,11 @@ Add to your MCP settings file:
 ## MCP Tools Reference
 
 ### Tool 1: `generate_class_diagram`
+
 Compiles an object-oriented domain model into a complete `.mdj` file with auto-calculated coordinates.
 
 **Input Schema:**
+
 ```json
 {
   "filePath": "./output/architecture.mdj",
@@ -170,6 +171,7 @@ Compiles an object-oriented domain model into a complete `.mdj` file with auto-c
 ```
 
 **Supported Relationship Types:**
+
 - `generalization`: Inheritance (solid line, hollow triangle arrow pointing to superclass)
 - `realization`: Interface implementation (dashed line, hollow triangle arrow pointing to interface)
 - `composition`: Strong ownership (solid line, filled diamond at whole end)
@@ -180,9 +182,11 @@ Compiles an object-oriented domain model into a complete `.mdj` file with auto-c
 ---
 
 ### Tool 2: `generate_use_case_diagram`
+
 Builds a Use Case diagram with actors, boundary systems, use cases, and relationships.
 
 **Input Schema:**
+
 ```json
 {
   "filePath": "./output/use_cases.mdj",
@@ -193,14 +197,41 @@ Builds a Use Case diagram with actors, boundary systems, use cases, and relation
     { "id": "act_admin", "name": "System Administrator" }
   ],
   "useCases": [
-    { "id": "uc_browse", "name": "Browse Products", "systemBoundary": "Web Store" },
-    { "id": "uc_checkout", "name": "Checkout Order", "systemBoundary": "Web Store" },
-    { "id": "uc_pay", "name": "Process Payment", "systemBoundary": "Payment Subsystem" }
+    {
+      "id": "uc_browse",
+      "name": "Browse Products",
+      "systemBoundary": "Web Store"
+    },
+    {
+      "id": "uc_checkout",
+      "name": "Checkout Order",
+      "systemBoundary": "Web Store"
+    },
+    {
+      "id": "uc_pay",
+      "name": "Process Payment",
+      "systemBoundary": "Payment Subsystem"
+    }
   ],
   "relationships": [
-    { "id": "r1", "type": "association", "sourceId": "act_customer", "targetId": "uc_browse" },
-    { "id": "r2", "type": "association", "sourceId": "act_customer", "targetId": "uc_checkout" },
-    { "id": "r3", "type": "include", "sourceId": "uc_checkout", "targetId": "uc_pay" }
+    {
+      "id": "r1",
+      "type": "association",
+      "sourceId": "act_customer",
+      "targetId": "uc_browse"
+    },
+    {
+      "id": "r2",
+      "type": "association",
+      "sourceId": "act_customer",
+      "targetId": "uc_checkout"
+    },
+    {
+      "id": "r3",
+      "type": "include",
+      "sourceId": "uc_checkout",
+      "targetId": "uc_pay"
+    }
   ]
 }
 ```
@@ -208,9 +239,11 @@ Builds a Use Case diagram with actors, boundary systems, use cases, and relation
 ---
 
 ### Tool 3: `generate_sequence_diagram`
+
 Creates an interaction sequence diagram with lifelines and synchronous/asynchronous/reply messages arranged in chronological vertical order.
 
 **Input Schema:**
+
 ```json
 {
   "filePath": "./output/sequence.mdj",
@@ -257,9 +290,11 @@ Creates an interaction sequence diagram with lifelines and synchronous/asynchron
 ---
 
 ### Tool 4: `inspect_mdj_model`
+
 Reads an existing `.mdj` file and returns a concise structural overview (list of diagrams, classes, interfaces, relationships, methods, actors, and use cases).
 
 **Input Schema:**
+
 ```json
 {
   "filePath": "./output/complex_architecture.mdj"
@@ -267,11 +302,14 @@ Reads an existing `.mdj` file and returns a concise structural overview (list of
 ```
 
 **Example Output:**
+
 ```markdown
 # StarUML Model Overview: Enterprise Banking System
+
 **File:** `output/complex_architecture.mdj`
 
 ## Summary Statistics
+
 - **Diagrams:** 1
 - **Classes:** 6
 - **Interfaces:** 1
@@ -280,22 +318,29 @@ Reads an existing `.mdj` file and returns a concise structural overview (list of
 - **Relationships:** 6
 
 ## Diagrams
+
 - **Core Domain Architecture** (`UMLClassDiagram`) — 13 visual views
 
 ## Classes & Interfaces
+
 ### BankAccount «abstract» (abstract) (`UMLClass`)
+
 **Attributes:**
-  - `protected` **accountNumber**: string
-  - `protected` **balance**: BigNumber
-**Operations:**
-  - `public` **deposit**(amount: BigNumber)
-  - `public` **withdraw**(amount: BigNumber): boolean
+
+- `protected` **accountNumber**: string
+- `protected` **balance**: BigNumber
+  **Operations:**
+- `public` **deposit**(amount: BigNumber)
+- `public` **withdraw**(amount: BigNumber): boolean
 
 ### IAuditLogger (`UMLInterface`)
+
 **Operations:**
-  - `public` **logEvent**(action: string, payload: Record<string, unknown>)
+
+- `public` **logEvent**(action: string, payload: Record<string, unknown>)
 
 ## Relationships
+
 - **SavingsAccount** ──(generalization)──> **BankAccount**
 - **CloudAuditService** ──(realization)──> **IAuditLogger**
 - **BankAccount** ──(composition "transactions" [1 -> 0..*])──> **Transaction**
