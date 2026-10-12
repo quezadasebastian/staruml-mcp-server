@@ -1511,3 +1511,917 @@ export function createUMLSeqMessageViewNode(
     activation: { $ref: activationId }
   };
 }
+
+// --- Activity Diagram Semantic Nodes & Views ---
+
+export function createUMLActivityNode(
+  id: string,
+  parentId: string,
+  name: string,
+  nodes: StarUMLNode[] = [],
+  edges: StarUMLNode[] = [],
+  ownedElements: StarUMLNode[] = []
+): StarUMLNode {
+  return {
+    _type: "UMLActivity",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    ownedElements,
+    nodes,
+    edges
+  };
+}
+
+export function createUMLActionNode(id: string, parentId: string, name: string): StarUMLNode {
+  return {
+    _type: "UMLAction",
+    _id: id,
+    _parent: { $ref: parentId },
+    name
+  };
+}
+
+export function createUMLControlNode(
+  nodeType: "UMLInitialNode" | "UMLActivityFinalNode" | "UMLFlowFinalNode" | "UMLDecisionNode" | "UMLMergeNode" | "UMLForkNode" | "UMLJoinNode",
+  id: string,
+  parentId: string,
+  name: string
+): StarUMLNode {
+  return {
+    _type: nodeType,
+    _id: id,
+    _parent: { $ref: parentId },
+    name
+  };
+}
+
+export function createUMLControlFlowNode(
+  id: string,
+  parentId: string,
+  sourceId: string,
+  targetId: string,
+  name?: string,
+  guard?: string
+): StarUMLNode {
+  const node: StarUMLNode = {
+    _type: "UMLControlFlow",
+    _id: id,
+    _parent: { $ref: parentId },
+    source: { $ref: sourceId },
+    target: { $ref: targetId }
+  };
+  if (name) node.name = name;
+  if (guard) node.guard = guard;
+  return node;
+}
+
+export function createUMLActivityDiagramNode(
+  id: string,
+  parentId: string,
+  name: string,
+  ownedViews: StarUMLNode[] = []
+): StarUMLNode {
+  return {
+    _type: "UMLActivityDiagram",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    ownedViews
+  };
+}
+
+export function createUMLActionViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  actionName: string,
+  bounds: { left: number; top: number; width: number; height: number }
+): StarUMLNode {
+  const nameCompId = generateStarUMLId();
+  const nameLabelId = generateStarUMLId();
+
+  return {
+    _type: "UMLActionView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    subViews: [
+      {
+        _type: "UMLNameCompartmentView",
+        _id: nameCompId,
+        _parent: { $ref: viewId },
+        model: { $ref: modelId },
+        subViews: [
+          {
+            _type: "LabelView",
+            _id: nameLabelId,
+            _parent: { $ref: nameCompId },
+            font: "Arial;13;0",
+            left: bounds.left + 5,
+            top: bounds.top + Math.floor((bounds.height - 15) / 2),
+            width: bounds.width - 10,
+            height: 13,
+            text: actionName
+          }
+        ],
+        font: "Arial;13;0",
+        left: bounds.left,
+        top: bounds.top,
+        width: bounds.width,
+        height: bounds.height,
+        nameLabel: { $ref: nameLabelId }
+      }
+    ],
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height,
+    nameCompartment: { $ref: nameCompId }
+  };
+}
+
+export function createUMLControlNodeViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  bounds: { left: number; top: number; width: number; height: number }
+): StarUMLNode {
+  return {
+    _type: "UMLControlNodeView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height
+  };
+}
+
+// --- Generic Edge View Node ---
+
+export function createUMLGenericEdgeViewNode(
+  viewType: string,
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  tailViewId: string,
+  headViewId: string,
+  pointsString: string,
+  options: { name?: string; label?: string } = {}
+): StarUMLNode {
+  const nameLabelId = generateStarUMLId();
+  const labelText = options.name ?? options.label ?? "";
+
+  return {
+    _type: viewType,
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    subViews: [
+      {
+        _type: "EdgeLabelView",
+        _id: nameLabelId,
+        _parent: { $ref: viewId },
+        model: { $ref: modelId },
+        visible: !!labelText,
+        font: "Arial;13;0",
+        height: 13,
+        alpha: 1.5707963267948966,
+        distance: 15,
+        hostEdge: { $ref: viewId },
+        edgePosition: 1,
+        text: labelText
+      }
+    ],
+    font: "Arial;13;0",
+    lineColor: "#000000",
+    head: { $ref: headViewId },
+    tail: { $ref: tailViewId },
+    lineStyle: 1,
+    points: pointsString,
+    nameLabel: { $ref: nameLabelId }
+  };
+}
+
+// --- State Machine Diagram Semantic Nodes & Views ---
+
+export function createUMLStateMachineNode(
+  id: string,
+  parentId: string,
+  name: string,
+  regions: StarUMLNode[] = [],
+  ownedElements: StarUMLNode[] = []
+): StarUMLNode {
+  return {
+    _type: "UMLStateMachine",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    regions,
+    ownedElements
+  };
+}
+
+export function createUMLRegionNode(
+  id: string,
+  parentId: string,
+  name: string,
+  vertices: StarUMLNode[] = [],
+  transitions: StarUMLNode[] = []
+): StarUMLNode {
+  return {
+    _type: "UMLRegion",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    vertices,
+    transitions
+  };
+}
+
+export function createUMLStateNode(
+  id: string,
+  parentId: string,
+  name: string,
+  entry?: string,
+  exit?: string,
+  doActivity?: string
+): StarUMLNode {
+  const node: StarUMLNode = {
+    _type: "UMLState",
+    _id: id,
+    _parent: { $ref: parentId },
+    name
+  };
+  if (entry) node.entryActivities = [{ _type: "UMLOpaqueBehavior", _id: generateStarUMLId(), name: entry }];
+  if (exit) node.exitActivities = [{ _type: "UMLOpaqueBehavior", _id: generateStarUMLId(), name: exit }];
+  if (doActivity) node.doActivities = [{ _type: "UMLOpaqueBehavior", _id: generateStarUMLId(), name: doActivity }];
+  return node;
+}
+
+export function createUMLPseudostateNode(
+  id: string,
+  parentId: string,
+  kind: "initial" | "choice" | "junction" = "initial",
+  name?: string
+): StarUMLNode {
+  return {
+    _type: "UMLPseudostate",
+    _id: id,
+    _parent: { $ref: parentId },
+    name: name ?? kind,
+    kind
+  };
+}
+
+export function createUMLFinalStateNode(id: string, parentId: string, name = "FinalState"): StarUMLNode {
+  return {
+    _type: "UMLFinalState",
+    _id: id,
+    _parent: { $ref: parentId },
+    name
+  };
+}
+
+export function createUMLTransitionNode(
+  id: string,
+  parentId: string,
+  sourceId: string,
+  targetId: string,
+  name?: string,
+  guard?: string,
+  trigger?: string,
+  effect?: string
+): StarUMLNode {
+  const node: StarUMLNode = {
+    _type: "UMLTransition",
+    _id: id,
+    _parent: { $ref: parentId },
+    source: { $ref: sourceId },
+    target: { $ref: targetId }
+  };
+  if (name) node.name = name;
+  if (guard) node.guard = guard;
+  if (trigger) node.triggers = [{ _type: "UMLEvent", _id: generateStarUMLId(), name: trigger }];
+  if (effect) node.effects = [{ _type: "UMLOpaqueBehavior", _id: generateStarUMLId(), name: effect }];
+  return node;
+}
+
+export function createUMLStatechartDiagramNode(
+  id: string,
+  parentId: string,
+  name: string,
+  ownedViews: StarUMLNode[] = []
+): StarUMLNode {
+  return {
+    _type: "UMLStatechartDiagram",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    ownedViews
+  };
+}
+
+export function createUMLStateViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  stateName: string,
+  bounds: { left: number; top: number; width: number; height: number }
+): StarUMLNode {
+  const nameCompId = generateStarUMLId();
+  const nameLabelId = generateStarUMLId();
+
+  return {
+    _type: "UMLStateView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    subViews: [
+      {
+        _type: "UMLNameCompartmentView",
+        _id: nameCompId,
+        _parent: { $ref: viewId },
+        model: { $ref: modelId },
+        subViews: [
+          {
+            _type: "LabelView",
+            _id: nameLabelId,
+            _parent: { $ref: nameCompId },
+            font: "Arial;13;1",
+            left: bounds.left + 5,
+            top: bounds.top + 6,
+            width: bounds.width - 10,
+            height: 13,
+            text: stateName
+          }
+        ],
+        font: "Arial;13;0",
+        left: bounds.left,
+        top: bounds.top,
+        width: bounds.width,
+        height: 25,
+        nameLabel: { $ref: nameLabelId }
+      }
+    ],
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height,
+    nameCompartment: { $ref: nameCompId }
+  };
+}
+
+export function createUMLPseudostateViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  bounds: { left: number; top: number; width: number; height: number }
+): StarUMLNode {
+  return {
+    _type: "UMLPseudostateView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height
+  };
+}
+
+export function createUMLFinalStateViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  bounds: { left: number; top: number; width: number; height: number }
+): StarUMLNode {
+  return {
+    _type: "UMLFinalStateView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height
+  };
+}
+
+// --- Component Diagram Semantic Nodes & Views ---
+
+export function createUMLComponentNode(
+  id: string,
+  parentId: string,
+  name: string,
+  stereotype?: string
+): StarUMLNode {
+  const node: StarUMLNode = {
+    _type: "UMLComponent",
+    _id: id,
+    _parent: { $ref: parentId },
+    name
+  };
+  if (stereotype) node.stereotype = stereotype;
+  return node;
+}
+
+export function createUMLComponentDiagramNode(
+  id: string,
+  parentId: string,
+  name: string,
+  ownedViews: StarUMLNode[] = []
+): StarUMLNode {
+  return {
+    _type: "UMLComponentDiagram",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    ownedViews
+  };
+}
+
+export function createUMLComponentViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  componentName: string,
+  bounds: { left: number; top: number; width: number; height: number },
+  stereotype?: string
+): StarUMLNode {
+  const nameCompId = generateStarUMLId();
+  const nameLabelId = generateStarUMLId();
+  const stereoLabelId = generateStarUMLId();
+  const hasStereo = !!stereotype;
+
+  return {
+    _type: "UMLComponentView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    subViews: [
+      {
+        _type: "UMLNameCompartmentView",
+        _id: nameCompId,
+        _parent: { $ref: viewId },
+        model: { $ref: modelId },
+        subViews: [
+          {
+            _type: "LabelView",
+            _id: stereoLabelId,
+            _parent: { $ref: nameCompId },
+            visible: hasStereo,
+            font: "Arial;13;0",
+            left: bounds.left + 5,
+            top: bounds.top + 5,
+            width: bounds.width - 10,
+            height: 13,
+            text: hasStereo ? `«${stereotype}»` : ""
+          },
+          {
+            _type: "LabelView",
+            _id: nameLabelId,
+            _parent: { $ref: nameCompId },
+            font: "Arial;13;1",
+            left: bounds.left + 5,
+            top: bounds.top + (hasStereo ? 20 : 6),
+            width: bounds.width - 10,
+            height: 13,
+            text: componentName
+          }
+        ],
+        font: "Arial;13;0",
+        left: bounds.left,
+        top: bounds.top,
+        width: bounds.width,
+        height: hasStereo ? 38 : 25,
+        nameLabel: { $ref: nameLabelId },
+        stereotypeLabel: { $ref: stereoLabelId }
+      }
+    ],
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height,
+    nameCompartment: { $ref: nameCompId }
+  };
+}
+
+// --- Deployment Diagram Semantic Nodes & Views ---
+
+export function createUMLDeploymentNode(
+  id: string,
+  parentId: string,
+  name: string,
+  stereotype?: string
+): StarUMLNode {
+  const node: StarUMLNode = {
+    _type: "UMLNode",
+    _id: id,
+    _parent: { $ref: parentId },
+    name
+  };
+  if (stereotype) node.stereotype = stereotype;
+  return node;
+}
+
+export function createUMLArtifactNode(id: string, parentId: string, name: string): StarUMLNode {
+  return {
+    _type: "UMLArtifact",
+    _id: id,
+    _parent: { $ref: parentId },
+    name
+  };
+}
+
+export function createUMLCommunicationPathNode(
+  id: string,
+  parentId: string,
+  sourceId: string,
+  targetId: string,
+  name?: string
+): StarUMLNode {
+  const end1Id = generateStarUMLId();
+  const end2Id = generateStarUMLId();
+  const node: StarUMLNode = {
+    _type: "UMLCommunicationPath",
+    _id: id,
+    _parent: { $ref: parentId },
+    end1: {
+      _type: "UMLAssociationEnd",
+      _id: end1Id,
+      _parent: { $ref: id },
+      reference: { $ref: sourceId }
+    },
+    end2: {
+      _type: "UMLAssociationEnd",
+      _id: end2Id,
+      _parent: { $ref: id },
+      reference: { $ref: targetId }
+    }
+  };
+  if (name) node.name = name;
+  return node;
+}
+
+export function createUMLDeploymentDiagramNode(
+  id: string,
+  parentId: string,
+  name: string,
+  ownedViews: StarUMLNode[] = []
+): StarUMLNode {
+  return {
+    _type: "UMLDeploymentDiagram",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    ownedViews
+  };
+}
+
+export function createUMLDeploymentNodeViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  nodeName: string,
+  bounds: { left: number; top: number; width: number; height: number },
+  stereotype?: string
+): StarUMLNode {
+  const nameCompId = generateStarUMLId();
+  const nameLabelId = generateStarUMLId();
+  const stereoLabelId = generateStarUMLId();
+  const hasStereo = !!stereotype;
+
+  return {
+    _type: "UMLNodeView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    subViews: [
+      {
+        _type: "UMLNameCompartmentView",
+        _id: nameCompId,
+        _parent: { $ref: viewId },
+        model: { $ref: modelId },
+        subViews: [
+          {
+            _type: "LabelView",
+            _id: stereoLabelId,
+            _parent: { $ref: nameCompId },
+            visible: hasStereo,
+            font: "Arial;13;0",
+            left: bounds.left + 5,
+            top: bounds.top + 5,
+            width: bounds.width - 10,
+            height: 13,
+            text: hasStereo ? `«${stereotype}»` : ""
+          },
+          {
+            _type: "LabelView",
+            _id: nameLabelId,
+            _parent: { $ref: nameCompId },
+            font: "Arial;13;1",
+            left: bounds.left + 5,
+            top: bounds.top + (hasStereo ? 20 : 6),
+            width: bounds.width - 10,
+            height: 13,
+            text: nodeName
+          }
+        ],
+        font: "Arial;13;0",
+        left: bounds.left,
+        top: bounds.top,
+        width: bounds.width,
+        height: hasStereo ? 38 : 25,
+        nameLabel: { $ref: nameLabelId },
+        stereotypeLabel: { $ref: stereoLabelId }
+      }
+    ],
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height,
+    nameCompartment: { $ref: nameCompId }
+  };
+}
+
+export function createUMLArtifactViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  artifactName: string,
+  bounds: { left: number; top: number; width: number; height: number }
+): StarUMLNode {
+  const nameCompId = generateStarUMLId();
+  const nameLabelId = generateStarUMLId();
+
+  return {
+    _type: "UMLArtifactView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    subViews: [
+      {
+        _type: "UMLNameCompartmentView",
+        _id: nameCompId,
+        _parent: { $ref: viewId },
+        model: { $ref: modelId },
+        subViews: [
+          {
+            _type: "LabelView",
+            _id: nameLabelId,
+            _parent: { $ref: nameCompId },
+            font: "Arial;13;1",
+            left: bounds.left + 5,
+            top: bounds.top + 6,
+            width: bounds.width - 10,
+            height: 13,
+            text: artifactName
+          }
+        ],
+        font: "Arial;13;0",
+        left: bounds.left,
+        top: bounds.top,
+        width: bounds.width,
+        height: 25,
+        nameLabel: { $ref: nameLabelId }
+      }
+    ],
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height,
+    nameCompartment: { $ref: nameCompId }
+  };
+}
+
+// --- Object Diagram Semantic Nodes & Views ---
+
+export function createUMLObjectNode(
+  id: string,
+  parentId: string,
+  name: string,
+  classifierName?: string,
+  slots: Array<{ name: string; value: string }> = []
+): StarUMLNode {
+  const slotNodes: StarUMLNode[] = slots.map((s) => ({
+    _type: "UMLSlot",
+    _id: generateStarUMLId(),
+    _parent: { $ref: id },
+    name: s.name,
+    value: s.value
+  }));
+
+  const node: StarUMLNode = {
+    _type: "UMLObject",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    slots: slotNodes
+  };
+  if (classifierName) node.classifierName = classifierName;
+  return node;
+}
+
+export function createUMLLinkNode(
+  id: string,
+  parentId: string,
+  sourceId: string,
+  targetId: string,
+  name?: string
+): StarUMLNode {
+  const end1Id = generateStarUMLId();
+  const end2Id = generateStarUMLId();
+
+  const node: StarUMLNode = {
+    _type: "UMLLink",
+    _id: id,
+    _parent: { $ref: parentId },
+    end1: {
+      _type: "UMLLinkEnd",
+      _id: end1Id,
+      _parent: { $ref: id },
+      reference: { $ref: sourceId }
+    },
+    end2: {
+      _type: "UMLLinkEnd",
+      _id: end2Id,
+      _parent: { $ref: id },
+      reference: { $ref: targetId }
+    }
+  };
+  if (name) node.name = name;
+  return node;
+}
+
+export function createUMLObjectDiagramNode(
+  id: string,
+  parentId: string,
+  name: string,
+  ownedViews: StarUMLNode[] = []
+): StarUMLNode {
+  return {
+    _type: "UMLObjectDiagram",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    ownedViews
+  };
+}
+
+export function createUMLObjectViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  objectName: string,
+  bounds: { left: number; top: number; width: number; height: number },
+  slots: Array<{ name: string; value: string }> = []
+): StarUMLNode {
+  const nameCompId = generateStarUMLId();
+  const nameLabelId = generateStarUMLId();
+  const slotCompId = generateStarUMLId();
+
+  const slotViews: StarUMLNode[] = slots.map((s) => ({
+    _type: "LabelView",
+    _id: generateStarUMLId(),
+    _parent: { $ref: slotCompId },
+    font: "Arial;13;0",
+    left: bounds.left + 5,
+    top: bounds.top + 30,
+    width: bounds.width - 10,
+    height: 13,
+    text: `${s.name} = ${s.value}`
+  }));
+
+  return {
+    _type: "UMLObjectView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    subViews: [
+      {
+        _type: "UMLNameCompartmentView",
+        _id: nameCompId,
+        _parent: { $ref: viewId },
+        model: { $ref: modelId },
+        subViews: [
+          {
+            _type: "LabelView",
+            _id: nameLabelId,
+            _parent: { $ref: nameCompId },
+            font: "Arial;13;5", // underline for instance
+            left: bounds.left + 5,
+            top: bounds.top + 6,
+            width: bounds.width - 10,
+            height: 13,
+            text: objectName
+          }
+        ],
+        font: "Arial;13;0",
+        left: bounds.left,
+        top: bounds.top,
+        width: bounds.width,
+        height: 25,
+        nameLabel: { $ref: nameLabelId }
+      },
+      {
+        _type: "UMLSlotCompartmentView",
+        _id: slotCompId,
+        _parent: { $ref: viewId },
+        model: { $ref: modelId },
+        subViews: slotViews,
+        visible: slots.length > 0,
+        font: "Arial;13;0",
+        left: bounds.left,
+        top: bounds.top + 25,
+        width: bounds.width,
+        height: Math.max(10, slots.length * 15 + 5)
+      }
+    ],
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height,
+    nameCompartment: { $ref: nameCompId }
+  };
+}
+
+// --- Communication Diagram Semantic Nodes & Views ---
+
+export function createUMLCommunicationDiagramNode(
+  id: string,
+  parentId: string,
+  name: string,
+  ownedViews: StarUMLNode[] = []
+): StarUMLNode {
+  return {
+    _type: "UMLCommunicationDiagram",
+    _id: id,
+    _parent: { $ref: parentId },
+    name,
+    ownedViews
+  };
+}
+
+export function createUMLCommLifelineViewNode(
+  viewId: string,
+  diagramId: string,
+  modelId: string,
+  lifelineName: string,
+  bounds: { left: number; top: number; width: number; height: number }
+): StarUMLNode {
+  const nameCompId = generateStarUMLId();
+  const nameLabelId = generateStarUMLId();
+
+  return {
+    _type: "UMLCommLifelineView",
+    _id: viewId,
+    _parent: { $ref: diagramId },
+    model: { $ref: modelId },
+    subViews: [
+      {
+        _type: "UMLNameCompartmentView",
+        _id: nameCompId,
+        _parent: { $ref: viewId },
+        model: { $ref: modelId },
+        subViews: [
+          {
+            _type: "LabelView",
+            _id: nameLabelId,
+            _parent: { $ref: nameCompId },
+            font: "Arial;13;5", // underlined
+            left: bounds.left + 5,
+            top: bounds.top + Math.floor((bounds.height - 15) / 2),
+            width: bounds.width - 10,
+            height: 13,
+            text: lifelineName
+          }
+        ],
+        font: "Arial;13;0",
+        left: bounds.left,
+        top: bounds.top,
+        width: bounds.width,
+        height: bounds.height,
+        nameLabel: { $ref: nameLabelId }
+      }
+    ],
+    font: "Arial;13;0",
+    left: bounds.left,
+    top: bounds.top,
+    width: bounds.width,
+    height: bounds.height,
+    nameCompartment: { $ref: nameCompId }
+  };
+}
+

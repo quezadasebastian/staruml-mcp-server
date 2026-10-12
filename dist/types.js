@@ -94,4 +94,160 @@ export const GenerateSequenceDiagramSchema = z.object({
 export const InspectMdjModelSchema = z.object({
     filePath: MdjFilePathSchema.describe("Path to the existing .mdj file to inspect")
 });
+// --- Tool 5: generate_activity_diagram ---
+export const ActivityNodeTypeEnum = z.enum([
+    "initial",
+    "action",
+    "decision",
+    "merge",
+    "fork",
+    "join",
+    "final",
+    "flowFinal"
+]);
+export const ActivityNodeSchema = z.object({
+    id: z.string().min(1, "Activity node ID cannot be empty").describe("Unique identifier for node"),
+    name: z.string().min(1, "Activity node name cannot be empty").describe("Node label or action name"),
+    type: ActivityNodeTypeEnum.describe("Node kind in activity diagram")
+});
+export const ActivityFlowSchema = z.object({
+    id: z.string().min(1, "Flow ID cannot be empty").describe("Unique identifier for control flow"),
+    sourceId: z.string().min(1, "Source node ID cannot be empty").describe("Source node ID"),
+    targetId: z.string().min(1, "Target node ID cannot be empty").describe("Target node ID"),
+    name: z.string().optional().describe("Optional flow label"),
+    guard: z.string().optional().describe("Optional guard condition in brackets, e.g. '[stock > 0]'")
+});
+export const GenerateActivityDiagramSchema = z.object({
+    filePath: MdjFilePathSchema.describe("Destination path ending in .mdj (e.g., './output/activity.mdj')"),
+    projectName: z.string().optional().describe("Optional StarUML project name"),
+    diagramName: z.string().min(1, "Diagram name cannot be empty").describe("Name of the activity diagram"),
+    nodes: z.array(ActivityNodeSchema).describe("List of activity and control nodes"),
+    flows: z.array(ActivityFlowSchema).describe("Control flows connecting the nodes")
+});
+// --- Tool 6: generate_state_machine_diagram ---
+export const StateNodeTypeEnum = z.enum([
+    "initial",
+    "state",
+    "final",
+    "choice",
+    "junction"
+]);
+export const StateNodeSchema = z.object({
+    id: z.string().min(1, "State ID cannot be empty").describe("Unique identifier for state"),
+    name: z.string().min(1, "State name cannot be empty").describe("State name or label"),
+    type: StateNodeTypeEnum.describe("State kind: initial, state, final, choice, junction"),
+    entryActivity: z.string().optional().describe("Optional entry action, e.g. 'entry / log()'"),
+    exitActivity: z.string().optional().describe("Optional exit action"),
+    doActivity: z.string().optional().describe("Optional continuous activity, e.g. 'do / poll()'")
+});
+export const StateTransitionSchema = z.object({
+    id: z.string().min(1, "Transition ID cannot be empty").describe("Unique identifier for transition"),
+    sourceId: z.string().min(1, "Source state ID cannot be empty").describe("Source state ID"),
+    targetId: z.string().min(1, "Target state ID cannot be empty").describe("Target state ID"),
+    name: z.string().optional().describe("Optional transition label or event name"),
+    trigger: z.string().optional().describe("Triggering event, e.g. 'pagoAprobado()'"),
+    guard: z.string().optional().describe("Boolean guard condition, e.g. '[intentos < 3]'"),
+    effect: z.string().optional().describe("Transition effect / action, e.g. 'enviarFactura()'")
+});
+export const GenerateStateMachineDiagramSchema = z.object({
+    filePath: MdjFilePathSchema.describe("Destination path ending in .mdj (e.g., './output/state_machine.mdj')"),
+    projectName: z.string().optional().describe("Optional StarUML project name"),
+    diagramName: z.string().min(1, "Diagram name cannot be empty").describe("Name of the state machine diagram"),
+    states: z.array(StateNodeSchema).describe("List of states and pseudostates"),
+    transitions: z.array(StateTransitionSchema).describe("Transitions between states")
+});
+// --- Tool 7: generate_component_diagram ---
+export const ComponentEntitySchema = z.object({
+    id: z.string().min(1, "Component ID cannot be empty").describe("Unique identifier for component"),
+    name: z.string().min(1, "Component name cannot be empty").describe("Component name"),
+    stereotype: z.string().optional().describe("e.g. 'subsystem', 'service', 'module'")
+});
+export const ComponentInterfaceSchema = z.object({
+    id: z.string().min(1, "Interface ID cannot be empty").describe("Unique identifier for interface"),
+    name: z.string().min(1, "Interface name cannot be empty").describe("Provided or required interface name")
+});
+export const ComponentRelationshipSchema = z.object({
+    id: z.string().min(1, "Relationship ID cannot be empty").describe("Unique identifier"),
+    type: z.enum(["dependency", "realization", "association"]).describe("Relationship type"),
+    sourceId: z.string().min(1, "Source ID cannot be empty").describe("Source component or interface ID"),
+    targetId: z.string().min(1, "Target ID cannot be empty").describe("Target component or interface ID"),
+    name: z.string().optional().describe("Optional relationship name")
+});
+export const GenerateComponentDiagramSchema = z.object({
+    filePath: MdjFilePathSchema.describe("Destination path ending in .mdj (e.g., './output/components.mdj')"),
+    projectName: z.string().optional().describe("Optional StarUML project name"),
+    diagramName: z.string().min(1, "Diagram name cannot be empty").describe("Name of the component diagram"),
+    components: z.array(ComponentEntitySchema).describe("List of components"),
+    interfaces: z.array(ComponentInterfaceSchema).optional().describe("Optional interfaces"),
+    relationships: z.array(ComponentRelationshipSchema).describe("Relationships connecting components and interfaces")
+});
+// --- Tool 8: generate_deployment_diagram ---
+export const DeploymentNodeSchema = z.object({
+    id: z.string().min(1, "Node ID cannot be empty").describe("Unique identifier for node"),
+    name: z.string().min(1, "Node name cannot be empty").describe("Node or physical device/server name"),
+    stereotype: z.string().optional().describe("e.g. 'device', 'executionEnvironment', 'server', 'database'")
+});
+export const DeploymentArtifactSchema = z.object({
+    id: z.string().min(1, "Artifact ID cannot be empty").describe("Unique identifier for artifact"),
+    name: z.string().min(1, "Artifact name cannot be empty").describe("Artifact file or package name (e.g., 'app.jar', 'docker-image')"),
+    nodeId: z.string().optional().describe("Optional parent node ID where artifact is deployed")
+});
+export const DeploymentConnectionSchema = z.object({
+    id: z.string().min(1, "Connection ID cannot be empty").describe("Unique identifier"),
+    sourceId: z.string().min(1, "Source node ID cannot be empty").describe("Source node ID"),
+    targetId: z.string().min(1, "Target node ID cannot be empty").describe("Target node ID"),
+    name: z.string().optional().describe("Protocol or connection label, e.g. 'HTTPS/REST', 'TCP/IP', 'gRPC'")
+});
+export const GenerateDeploymentDiagramSchema = z.object({
+    filePath: MdjFilePathSchema.describe("Destination path ending in .mdj (e.g., './output/deployment.mdj')"),
+    projectName: z.string().optional().describe("Optional StarUML project name"),
+    diagramName: z.string().min(1, "Diagram name cannot be empty").describe("Name of the deployment diagram"),
+    nodes: z.array(DeploymentNodeSchema).describe("List of deployment nodes"),
+    artifacts: z.array(DeploymentArtifactSchema).optional().describe("Artifacts deployed on nodes"),
+    connections: z.array(DeploymentConnectionSchema).describe("Communication paths connecting the nodes")
+});
+// --- Tool 9: generate_object_diagram ---
+export const ObjectSlotSchema = z.object({
+    name: z.string().min(1, "Slot name cannot be empty").describe("Attribute name"),
+    value: z.string().describe("Slot / attribute value, e.g. '123', '\"activo\"'")
+});
+export const ObjectEntitySchema = z.object({
+    id: z.string().min(1, "Object ID cannot be empty").describe("Unique identifier for object instance"),
+    name: z.string().min(1, "Object name cannot be empty").describe("Instance name, e.g. 'usuario1', ':Factura', 'p:Producto'"),
+    className: z.string().optional().describe("Optional classifier class name"),
+    slots: z.array(ObjectSlotSchema).optional().describe("List of attribute values / slots")
+});
+export const ObjectLinkSchema = z.object({
+    id: z.string().min(1, "Link ID cannot be empty").describe("Unique identifier for link"),
+    sourceId: z.string().min(1, "Source object ID cannot be empty").describe("Source object ID"),
+    targetId: z.string().min(1, "Target object ID cannot be empty").describe("Target object ID"),
+    name: z.string().optional().describe("Optional association or link name")
+});
+export const GenerateObjectDiagramSchema = z.object({
+    filePath: MdjFilePathSchema.describe("Destination path ending in .mdj (e.g., './output/objects.mdj')"),
+    projectName: z.string().optional().describe("Optional StarUML project name"),
+    diagramName: z.string().min(1, "Diagram name cannot be empty").describe("Name of the object diagram"),
+    objects: z.array(ObjectEntitySchema).describe("List of object instances"),
+    links: z.array(ObjectLinkSchema).describe("Links connecting the objects")
+});
+// --- Tool 10: generate_communication_diagram ---
+export const CommLifelineSchema = z.object({
+    id: z.string().min(1, "Lifeline ID cannot be empty").describe("Unique identifier"),
+    name: z.string().min(1, "Lifeline name cannot be empty").describe("Role or participant name, e.g. 'controlador:PedidoController'"),
+    representClass: z.string().optional().describe("Optional represented class name")
+});
+export const CommMessageSchema = z.object({
+    id: z.string().min(1, "Message ID cannot be empty").describe("Unique identifier"),
+    sourceId: z.string().min(1, "Source lifeline ID cannot be empty").describe("Sender lifeline ID"),
+    targetId: z.string().min(1, "Target lifeline ID cannot be empty").describe("Receiver lifeline ID"),
+    sequenceNumber: z.string().min(1, "Sequence number cannot be empty").describe("Hierarchical message sequence number, e.g. '1', '1.1', '2'"),
+    name: z.string().min(1, "Message name cannot be empty").describe("Invocation or message signature, e.g. 'calcularTotal()'")
+});
+export const GenerateCommunicationDiagramSchema = z.object({
+    filePath: MdjFilePathSchema.describe("Destination path ending in .mdj (e.g., './output/communication.mdj')"),
+    projectName: z.string().optional().describe("Optional StarUML project name"),
+    diagramName: z.string().min(1, "Diagram name cannot be empty").describe("Name of the communication diagram"),
+    lifelines: z.array(CommLifelineSchema).describe("Participants in the collaboration"),
+    messages: z.array(CommMessageSchema).describe("Sequenced messages exchanged between participants")
+});
 //# sourceMappingURL=types.js.map

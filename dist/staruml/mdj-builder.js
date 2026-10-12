@@ -1,7 +1,7 @@
 import { IdRegistry, generateStarUMLId } from "./id-generator.js";
 import { computeGraphLayout } from "../layout/dagre-layout.js";
 import { computeSequenceLayout } from "../layout/sequence-layout.js";
-import { createProjectNode, createUMLModelNode, createUMLClassNode, createUMLAttributeNode, createUMLOperationNode, createUMLGeneralizationNode, createUMLInterfaceRealizationNode, createUMLDependencyNode, createUMLAssociationNode, createUMLClassDiagramNode, createUMLClassViewNode, createUMLConnectionViewNode, createUMLAssociationViewNode, createUMLActorNode, createUMLUseCaseSubjectNode, createUMLUseCaseNode, createUMLIncludeNode, createUMLExtendNode, createUMLUseCaseDiagramNode, createUMLActorViewNode, createUMLUseCaseViewNode, createUMLUseCaseSubjectViewNode, createUMLIncludeViewNode, createUMLExtendViewNode, createUMLInteractionNode, createUMLLifelineNode, createUMLMessageNode, createUMLSequenceDiagramNode, createUMLSeqLifelineViewNode, createUMLSeqMessageViewNode } from "./mdj-factory.js";
+import { createProjectNode, createUMLModelNode, createUMLClassNode, createUMLAttributeNode, createUMLOperationNode, createUMLGeneralizationNode, createUMLInterfaceRealizationNode, createUMLDependencyNode, createUMLAssociationNode, createUMLClassDiagramNode, createUMLClassViewNode, createUMLConnectionViewNode, createUMLAssociationViewNode, createUMLActorNode, createUMLUseCaseSubjectNode, createUMLUseCaseNode, createUMLIncludeNode, createUMLExtendNode, createUMLUseCaseDiagramNode, createUMLActorViewNode, createUMLUseCaseViewNode, createUMLUseCaseSubjectViewNode, createUMLIncludeViewNode, createUMLExtendViewNode, createUMLInteractionNode, createUMLLifelineNode, createUMLMessageNode, createUMLSequenceDiagramNode, createUMLSeqLifelineViewNode, createUMLSeqMessageViewNode, createUMLActivityNode, createUMLActionNode, createUMLControlNode, createUMLControlFlowNode, createUMLActivityDiagramNode, createUMLActionViewNode, createUMLControlNodeViewNode, createUMLGenericEdgeViewNode, createUMLStateMachineNode, createUMLRegionNode, createUMLStateNode, createUMLPseudostateNode, createUMLFinalStateNode, createUMLTransitionNode, createUMLStatechartDiagramNode, createUMLStateViewNode, createUMLPseudostateViewNode, createUMLFinalStateViewNode, createUMLComponentNode, createUMLComponentDiagramNode, createUMLComponentViewNode, createUMLDeploymentNode, createUMLArtifactNode, createUMLCommunicationPathNode, createUMLDeploymentDiagramNode, createUMLDeploymentNodeViewNode, createUMLArtifactViewNode, createUMLObjectNode, createUMLLinkNode, createUMLObjectDiagramNode, createUMLObjectViewNode, createUMLCommunicationDiagramNode, createUMLCommLifelineViewNode } from "./mdj-factory.js";
 /**
  * Builds a complete, valid StarUML (.mdj) AST for a Class Diagram.
  */
@@ -520,6 +520,503 @@ export function buildSequenceDiagramMdj(input) {
     ]);
     // Interaction Node (holds participants, messages, and the diagram)
     const interactionNode = createUMLInteractionNode(interactionId, modelId, input.diagramName, semanticLifelines, semanticMessages, [sequenceDiagramNode]);
+    const modelNode = createUMLModelNode(modelId, projectId, input.projectName ?? "Model", [interactionNode]);
+    return createProjectNode(projectId, input.projectName ?? "Model", [modelNode]);
+}
+/**
+ * Builds a complete StarUML (.mdj) AST for an Activity Diagram.
+ */
+export function buildActivityDiagramMdj(input) {
+    const registry = new IdRegistry();
+    const projectId = generateStarUMLId();
+    const modelId = generateStarUMLId();
+    const activityId = generateStarUMLId();
+    const diagramId = generateStarUMLId();
+    const nodeViewIdMap = new Map();
+    const layoutNodes = [];
+    const semanticNodes = [];
+    for (const node of input.nodes) {
+        const nodeModelId = registry.resolve(node.id);
+        const nodeViewId = generateStarUMLId();
+        nodeViewIdMap.set(node.id, nodeViewId);
+        let width = 140;
+        let height = 45;
+        if (node.type === "initial") {
+            width = 20;
+            height = 20;
+            semanticNodes.push(createUMLControlNode("UMLInitialNode", nodeModelId, activityId, node.name));
+        }
+        else if (node.type === "final") {
+            width = 26;
+            height = 26;
+            semanticNodes.push(createUMLControlNode("UMLActivityFinalNode", nodeModelId, activityId, node.name));
+        }
+        else if (node.type === "flowFinal") {
+            width = 26;
+            height = 26;
+            semanticNodes.push(createUMLControlNode("UMLFlowFinalNode", nodeModelId, activityId, node.name));
+        }
+        else if (node.type === "decision") {
+            width = 30;
+            height = 30;
+            semanticNodes.push(createUMLControlNode("UMLDecisionNode", nodeModelId, activityId, node.name));
+        }
+        else if (node.type === "merge") {
+            width = 30;
+            height = 30;
+            semanticNodes.push(createUMLControlNode("UMLMergeNode", nodeModelId, activityId, node.name));
+        }
+        else if (node.type === "fork") {
+            width = 80;
+            height = 8;
+            semanticNodes.push(createUMLControlNode("UMLForkNode", nodeModelId, activityId, node.name));
+        }
+        else if (node.type === "join") {
+            width = 80;
+            height = 8;
+            semanticNodes.push(createUMLControlNode("UMLJoinNode", nodeModelId, activityId, node.name));
+        }
+        else {
+            width = Math.max(120, Math.min(360, Math.round(node.name.length * 8.5 + 30)));
+            height = 45;
+            semanticNodes.push(createUMLActionNode(nodeModelId, activityId, node.name));
+        }
+        layoutNodes.push({ id: node.id, width, height });
+    }
+    const layoutEdges = input.flows.map((f) => ({
+        id: f.id,
+        sourceId: f.sourceId,
+        targetId: f.targetId
+    }));
+    const layoutResult = computeGraphLayout(layoutNodes, layoutEdges, {
+        rankdir: "TB",
+        nodesep: 40,
+        ranksep: 50
+    });
+    const nodeViews = [];
+    for (const node of input.nodes) {
+        const nodeModelId = registry.resolve(node.id);
+        const nodeViewId = nodeViewIdMap.get(node.id);
+        const pos = layoutResult.nodes.get(node.id) ?? { left: 100, top: 100, width: 120, height: 45 };
+        if (node.type === "action") {
+            nodeViews.push(createUMLActionViewNode(nodeViewId, diagramId, nodeModelId, node.name, pos));
+        }
+        else {
+            nodeViews.push(createUMLControlNodeViewNode(nodeViewId, diagramId, nodeModelId, pos));
+        }
+    }
+    const flowViews = [];
+    const semanticFlows = [];
+    for (const flow of input.flows) {
+        const flowModelId = registry.resolve(flow.id);
+        const flowViewId = generateStarUMLId();
+        const srcModelId = registry.resolve(flow.sourceId);
+        const tgtModelId = registry.resolve(flow.targetId);
+        const srcViewId = nodeViewIdMap.get(flow.sourceId);
+        const tgtViewId = nodeViewIdMap.get(flow.targetId);
+        if (!srcViewId || !tgtViewId)
+            continue;
+        semanticFlows.push(createUMLControlFlowNode(flowModelId, activityId, srcModelId, tgtModelId, flow.name, flow.guard));
+        const edgeLayout = layoutResult.edges.get(flow.id);
+        const pointsString = edgeLayout?.pointsString ?? "100,100;100,200";
+        flowViews.push(createUMLGenericEdgeViewNode("UMLControlFlowView", flowViewId, diagramId, flowModelId, srcViewId, tgtViewId, pointsString, { label: flow.guard ? `${flow.name ?? ""} ${flow.guard}`.trim() : flow.name }));
+    }
+    const diagramNode = createUMLActivityDiagramNode(diagramId, activityId, input.diagramName, [
+        ...nodeViews,
+        ...flowViews
+    ]);
+    const activityNode = createUMLActivityNode(activityId, modelId, input.diagramName, semanticNodes, semanticFlows, [diagramNode]);
+    const modelNode = createUMLModelNode(modelId, projectId, input.projectName ?? "Model", [activityNode]);
+    return createProjectNode(projectId, input.projectName ?? "Model", [modelNode]);
+}
+/**
+ * Builds a complete StarUML (.mdj) AST for a State Machine Diagram.
+ */
+export function buildStateMachineDiagramMdj(input) {
+    const registry = new IdRegistry();
+    const projectId = generateStarUMLId();
+    const modelId = generateStarUMLId();
+    const stateMachineId = generateStarUMLId();
+    const regionId = generateStarUMLId();
+    const diagramId = generateStarUMLId();
+    const stateViewIdMap = new Map();
+    const layoutNodes = [];
+    const vertices = [];
+    for (const state of input.states) {
+        const stateModelId = registry.resolve(state.id);
+        const stateViewId = generateStarUMLId();
+        stateViewIdMap.set(state.id, stateViewId);
+        let width = 120;
+        let height = 50;
+        if (state.type === "initial") {
+            width = 20;
+            height = 20;
+            vertices.push(createUMLPseudostateNode(stateModelId, regionId, "initial", state.name));
+        }
+        else if (state.type === "choice") {
+            width = 25;
+            height = 25;
+            vertices.push(createUMLPseudostateNode(stateModelId, regionId, "choice", state.name));
+        }
+        else if (state.type === "junction") {
+            width = 20;
+            height = 20;
+            vertices.push(createUMLPseudostateNode(stateModelId, regionId, "junction", state.name));
+        }
+        else if (state.type === "final") {
+            width = 26;
+            height = 26;
+            vertices.push(createUMLFinalStateNode(stateModelId, regionId, state.name));
+        }
+        else {
+            width = Math.max(120, Math.min(360, Math.round(state.name.length * 8.5 + 30)));
+            height = 50;
+            vertices.push(createUMLStateNode(stateModelId, regionId, state.name, state.entryActivity, state.exitActivity, state.doActivity));
+        }
+        layoutNodes.push({ id: state.id, width, height });
+    }
+    const layoutEdges = input.transitions.map((t) => ({
+        id: t.id,
+        sourceId: t.sourceId,
+        targetId: t.targetId
+    }));
+    const layoutResult = computeGraphLayout(layoutNodes, layoutEdges, {
+        rankdir: "LR",
+        nodesep: 50,
+        ranksep: 70
+    });
+    const stateViews = [];
+    for (const state of input.states) {
+        const stateModelId = registry.resolve(state.id);
+        const stateViewId = stateViewIdMap.get(state.id);
+        const pos = layoutResult.nodes.get(state.id) ?? { left: 100, top: 100, width: 120, height: 50 };
+        if (state.type === "initial" || state.type === "choice" || state.type === "junction") {
+            stateViews.push(createUMLPseudostateViewNode(stateViewId, diagramId, stateModelId, pos));
+        }
+        else if (state.type === "final") {
+            stateViews.push(createUMLFinalStateViewNode(stateViewId, diagramId, stateModelId, pos));
+        }
+        else {
+            stateViews.push(createUMLStateViewNode(stateViewId, diagramId, stateModelId, state.name, pos));
+        }
+    }
+    const transViews = [];
+    const transitions = [];
+    for (const t of input.transitions) {
+        const transModelId = registry.resolve(t.id);
+        const transViewId = generateStarUMLId();
+        const srcModelId = registry.resolve(t.sourceId);
+        const tgtModelId = registry.resolve(t.targetId);
+        const srcViewId = stateViewIdMap.get(t.sourceId);
+        const tgtViewId = stateViewIdMap.get(t.targetId);
+        if (!srcViewId || !tgtViewId)
+            continue;
+        transitions.push(createUMLTransitionNode(transModelId, regionId, srcModelId, tgtModelId, t.name, t.guard, t.trigger, t.effect));
+        const edgeLayout = layoutResult.edges.get(t.id);
+        const pointsString = edgeLayout?.pointsString ?? "100,100;200,100";
+        const label = t.guard
+            ? `${t.trigger ?? t.name ?? ""} ${t.guard}`.trim()
+            : (t.trigger ?? t.name ?? "");
+        transViews.push(createUMLGenericEdgeViewNode("UMLTransitionView", transViewId, diagramId, transModelId, srcViewId, tgtViewId, pointsString, { label }));
+    }
+    const diagramNode = createUMLStatechartDiagramNode(diagramId, stateMachineId, input.diagramName, [
+        ...stateViews,
+        ...transViews
+    ]);
+    const regionNode = createUMLRegionNode(regionId, stateMachineId, "Region1", vertices, transitions);
+    const stateMachineNode = createUMLStateMachineNode(stateMachineId, modelId, input.diagramName, [regionNode], [diagramNode]);
+    const modelNode = createUMLModelNode(modelId, projectId, input.projectName ?? "Model", [stateMachineNode]);
+    return createProjectNode(projectId, input.projectName ?? "Model", [modelNode]);
+}
+/**
+ * Builds a complete StarUML (.mdj) AST for a Component Diagram.
+ */
+export function buildComponentDiagramMdj(input) {
+    const registry = new IdRegistry();
+    const projectId = generateStarUMLId();
+    const modelId = generateStarUMLId();
+    const diagramId = generateStarUMLId();
+    const viewIdMap = new Map();
+    const layoutNodes = [];
+    const semanticElements = [];
+    for (const comp of input.components) {
+        const compModelId = registry.resolve(comp.id);
+        const compViewId = generateStarUMLId();
+        viewIdMap.set(comp.id, compViewId);
+        const width = Math.max(140, Math.min(360, Math.round(comp.name.length * 8.5 + 40)));
+        const height = comp.stereotype ? 60 : 45;
+        semanticElements.push(createUMLComponentNode(compModelId, modelId, comp.name, comp.stereotype));
+        layoutNodes.push({ id: comp.id, width, height });
+    }
+    for (const iface of input.interfaces ?? []) {
+        const ifaceModelId = registry.resolve(iface.id);
+        const ifaceViewId = generateStarUMLId();
+        viewIdMap.set(iface.id, ifaceViewId);
+        const width = Math.max(110, Math.min(300, Math.round(iface.name.length * 8.5 + 30)));
+        const height = 40;
+        semanticElements.push(createUMLClassNode(ifaceModelId, modelId, iface.name, { stereotype: "interface" }));
+        layoutNodes.push({ id: iface.id, width, height });
+    }
+    const layoutEdges = input.relationships.map((r) => ({
+        id: r.id,
+        sourceId: r.sourceId,
+        targetId: r.targetId
+    }));
+    const layoutResult = computeGraphLayout(layoutNodes, layoutEdges, {
+        rankdir: "TB",
+        nodesep: 60,
+        ranksep: 80
+    });
+    const nodeViews = [];
+    for (const comp of input.components) {
+        const compModelId = registry.resolve(comp.id);
+        const compViewId = viewIdMap.get(comp.id);
+        const pos = layoutResult.nodes.get(comp.id) ?? { left: 100, top: 100, width: 140, height: 50 };
+        nodeViews.push(createUMLComponentViewNode(compViewId, diagramId, compModelId, comp.name, pos, comp.stereotype));
+    }
+    for (const iface of input.interfaces ?? []) {
+        const ifaceModelId = registry.resolve(iface.id);
+        const ifaceViewId = viewIdMap.get(iface.id);
+        const pos = layoutResult.nodes.get(iface.id) ?? { left: 100, top: 100, width: 110, height: 40 };
+        nodeViews.push(createUMLClassViewNode(ifaceViewId, diagramId, ifaceModelId, iface.name, pos, { stereotype: "interface" }));
+    }
+    const edgeViews = [];
+    for (const rel of input.relationships) {
+        const relModelId = registry.resolve(rel.id);
+        const relViewId = generateStarUMLId();
+        const srcModelId = registry.resolve(rel.sourceId);
+        const tgtModelId = registry.resolve(rel.targetId);
+        const srcViewId = viewIdMap.get(rel.sourceId);
+        const tgtViewId = viewIdMap.get(rel.targetId);
+        if (!srcViewId || !tgtViewId)
+            continue;
+        const edgeLayout = layoutResult.edges.get(rel.id);
+        const pointsString = edgeLayout?.pointsString ?? "100,100;100,200";
+        let viewType = "UMLDependencyView";
+        if (rel.type === "realization") {
+            semanticElements.push(createUMLInterfaceRealizationNode(relModelId, srcModelId, tgtModelId, rel.name));
+            viewType = "UMLInterfaceRealizationView";
+        }
+        else if (rel.type === "association") {
+            semanticElements.push(createUMLAssociationNode(relModelId, srcModelId, tgtModelId, { name: rel.name }));
+            viewType = "UMLAssociationView";
+        }
+        else {
+            semanticElements.push(createUMLDependencyNode(relModelId, srcModelId, tgtModelId, rel.name));
+            viewType = "UMLDependencyView";
+        }
+        edgeViews.push(createUMLGenericEdgeViewNode(viewType, relViewId, diagramId, relModelId, srcViewId, tgtViewId, pointsString, { name: rel.name }));
+    }
+    const diagramNode = createUMLComponentDiagramNode(diagramId, modelId, input.diagramName, [
+        ...nodeViews,
+        ...edgeViews
+    ]);
+    const modelNode = createUMLModelNode(modelId, projectId, input.projectName ?? "Model", [
+        diagramNode,
+        ...semanticElements
+    ]);
+    return createProjectNode(projectId, input.projectName ?? "Model", [modelNode]);
+}
+/**
+ * Builds a complete StarUML (.mdj) AST for a Deployment Diagram.
+ */
+export function buildDeploymentDiagramMdj(input) {
+    const registry = new IdRegistry();
+    const projectId = generateStarUMLId();
+    const modelId = generateStarUMLId();
+    const diagramId = generateStarUMLId();
+    const viewIdMap = new Map();
+    const layoutNodes = [];
+    const semanticElements = [];
+    for (const node of input.nodes) {
+        const nodeModelId = registry.resolve(node.id);
+        const nodeViewId = generateStarUMLId();
+        viewIdMap.set(node.id, nodeViewId);
+        const width = Math.max(160, Math.min(360, Math.round(node.name.length * 8.5 + 40)));
+        const height = node.stereotype ? 75 : 60;
+        semanticElements.push(createUMLDeploymentNode(nodeModelId, modelId, node.name, node.stereotype));
+        layoutNodes.push({ id: node.id, width, height });
+    }
+    for (const art of input.artifacts ?? []) {
+        const artModelId = registry.resolve(art.id);
+        const artViewId = generateStarUMLId();
+        viewIdMap.set(art.id, artViewId);
+        const width = Math.max(120, Math.min(300, Math.round(art.name.length * 8.5 + 30)));
+        const height = 45;
+        semanticElements.push(createUMLArtifactNode(artModelId, modelId, art.name));
+        layoutNodes.push({ id: art.id, width, height });
+    }
+    const layoutEdges = input.connections.map((c) => ({
+        id: c.id,
+        sourceId: c.sourceId,
+        targetId: c.targetId
+    }));
+    const layoutResult = computeGraphLayout(layoutNodes, layoutEdges, {
+        rankdir: "TB",
+        nodesep: 60,
+        ranksep: 80
+    });
+    const nodeViews = [];
+    for (const node of input.nodes) {
+        const nodeModelId = registry.resolve(node.id);
+        const nodeViewId = viewIdMap.get(node.id);
+        const pos = layoutResult.nodes.get(node.id) ?? { left: 100, top: 100, width: 160, height: 60 };
+        nodeViews.push(createUMLDeploymentNodeViewNode(nodeViewId, diagramId, nodeModelId, node.name, pos, node.stereotype));
+    }
+    for (const art of input.artifacts ?? []) {
+        const artModelId = registry.resolve(art.id);
+        const artViewId = viewIdMap.get(art.id);
+        const pos = layoutResult.nodes.get(art.id) ?? { left: 100, top: 100, width: 120, height: 45 };
+        nodeViews.push(createUMLArtifactViewNode(artViewId, diagramId, artModelId, art.name, pos));
+    }
+    const edgeViews = [];
+    for (const conn of input.connections) {
+        const connModelId = registry.resolve(conn.id);
+        const connViewId = generateStarUMLId();
+        const srcModelId = registry.resolve(conn.sourceId);
+        const tgtModelId = registry.resolve(conn.targetId);
+        const srcViewId = viewIdMap.get(conn.sourceId);
+        const tgtViewId = viewIdMap.get(conn.targetId);
+        if (!srcViewId || !tgtViewId)
+            continue;
+        semanticElements.push(createUMLCommunicationPathNode(connModelId, modelId, srcModelId, tgtModelId, conn.name));
+        const edgeLayout = layoutResult.edges.get(conn.id);
+        const pointsString = edgeLayout?.pointsString ?? "100,100;100,200";
+        edgeViews.push(createUMLGenericEdgeViewNode("UMLCommunicationPathView", connViewId, diagramId, connModelId, srcViewId, tgtViewId, pointsString, { name: conn.name }));
+    }
+    const diagramNode = createUMLDeploymentDiagramNode(diagramId, modelId, input.diagramName, [
+        ...nodeViews,
+        ...edgeViews
+    ]);
+    const modelNode = createUMLModelNode(modelId, projectId, input.projectName ?? "Model", [
+        diagramNode,
+        ...semanticElements
+    ]);
+    return createProjectNode(projectId, input.projectName ?? "Model", [modelNode]);
+}
+/**
+ * Builds a complete StarUML (.mdj) AST for an Object Diagram.
+ */
+export function buildObjectDiagramMdj(input) {
+    const registry = new IdRegistry();
+    const projectId = generateStarUMLId();
+    const modelId = generateStarUMLId();
+    const diagramId = generateStarUMLId();
+    const viewIdMap = new Map();
+    const layoutNodes = [];
+    const semanticElements = [];
+    for (const obj of input.objects) {
+        const objModelId = registry.resolve(obj.id);
+        const objViewId = generateStarUMLId();
+        viewIdMap.set(obj.id, objViewId);
+        const width = Math.max(140, Math.min(360, Math.round(obj.name.length * 8.5 + 40)));
+        const slotCount = obj.slots?.length ?? 0;
+        const height = Math.max(45, 30 + slotCount * 18);
+        semanticElements.push(createUMLObjectNode(objModelId, modelId, obj.name, obj.className, obj.slots));
+        layoutNodes.push({ id: obj.id, width, height });
+    }
+    const layoutEdges = input.links.map((l) => ({
+        id: l.id,
+        sourceId: l.sourceId,
+        targetId: l.targetId
+    }));
+    const layoutResult = computeGraphLayout(layoutNodes, layoutEdges, {
+        rankdir: "TB",
+        nodesep: 60,
+        ranksep: 80
+    });
+    const nodeViews = [];
+    for (const obj of input.objects) {
+        const objModelId = registry.resolve(obj.id);
+        const objViewId = viewIdMap.get(obj.id);
+        const pos = layoutResult.nodes.get(obj.id) ?? { left: 100, top: 100, width: 140, height: 45 };
+        nodeViews.push(createUMLObjectViewNode(objViewId, diagramId, objModelId, obj.name, pos, obj.slots));
+    }
+    const edgeViews = [];
+    for (const link of input.links) {
+        const linkModelId = registry.resolve(link.id);
+        const linkViewId = generateStarUMLId();
+        const srcModelId = registry.resolve(link.sourceId);
+        const tgtModelId = registry.resolve(link.targetId);
+        const srcViewId = viewIdMap.get(link.sourceId);
+        const tgtViewId = viewIdMap.get(link.targetId);
+        if (!srcViewId || !tgtViewId)
+            continue;
+        semanticElements.push(createUMLLinkNode(linkModelId, modelId, srcModelId, tgtModelId, link.name));
+        const edgeLayout = layoutResult.edges.get(link.id);
+        const pointsString = edgeLayout?.pointsString ?? "100,100;100,200";
+        edgeViews.push(createUMLGenericEdgeViewNode("UMLLinkView", linkViewId, diagramId, linkModelId, srcViewId, tgtViewId, pointsString, { name: link.name }));
+    }
+    const diagramNode = createUMLObjectDiagramNode(diagramId, modelId, input.diagramName, [
+        ...nodeViews,
+        ...edgeViews
+    ]);
+    const modelNode = createUMLModelNode(modelId, projectId, input.projectName ?? "Model", [
+        diagramNode,
+        ...semanticElements
+    ]);
+    return createProjectNode(projectId, input.projectName ?? "Model", [modelNode]);
+}
+/**
+ * Builds a complete StarUML (.mdj) AST for a Communication Diagram.
+ */
+export function buildCommunicationDiagramMdj(input) {
+    const registry = new IdRegistry();
+    const projectId = generateStarUMLId();
+    const modelId = generateStarUMLId();
+    const interactionId = generateStarUMLId();
+    const diagramId = generateStarUMLId();
+    const viewIdMap = new Map();
+    const layoutNodes = [];
+    const semanticLifelines = [];
+    for (const ll of input.lifelines) {
+        const llModelId = registry.resolve(ll.id);
+        const llViewId = generateStarUMLId();
+        viewIdMap.set(ll.id, llViewId);
+        const width = Math.max(140, Math.min(360, Math.round(ll.name.length * 8.5 + 40)));
+        const height = 45;
+        semanticLifelines.push(createUMLLifelineNode(llModelId, interactionId, ll.name, ll.representClass));
+        layoutNodes.push({ id: ll.id, width, height });
+    }
+    const layoutEdges = input.messages.map((m) => ({
+        id: m.id,
+        sourceId: m.sourceId,
+        targetId: m.targetId
+    }));
+    const layoutResult = computeGraphLayout(layoutNodes, layoutEdges, {
+        rankdir: "TB",
+        nodesep: 70,
+        ranksep: 90
+    });
+    const lifelineViews = [];
+    for (const ll of input.lifelines) {
+        const llModelId = registry.resolve(ll.id);
+        const llViewId = viewIdMap.get(ll.id);
+        const pos = layoutResult.nodes.get(ll.id) ?? { left: 100, top: 100, width: 140, height: 45 };
+        lifelineViews.push(createUMLCommLifelineViewNode(llViewId, diagramId, llModelId, ll.name, pos));
+    }
+    const messageViews = [];
+    const semanticMessages = [];
+    for (const msg of input.messages) {
+        const msgModelId = registry.resolve(msg.id);
+        const msgViewId = generateStarUMLId();
+        const srcModelId = registry.resolve(msg.sourceId);
+        const tgtModelId = registry.resolve(msg.targetId);
+        const srcViewId = viewIdMap.get(msg.sourceId);
+        const tgtViewId = viewIdMap.get(msg.targetId);
+        if (!srcViewId || !tgtViewId)
+            continue;
+        const fullMsgName = `${msg.sequenceNumber}: ${msg.name}`;
+        semanticMessages.push(createUMLMessageNode(msgModelId, interactionId, fullMsgName, srcModelId, tgtModelId));
+        const edgeLayout = layoutResult.edges.get(msg.id);
+        const pointsString = edgeLayout?.pointsString ?? "100,100;100,200";
+        messageViews.push(createUMLGenericEdgeViewNode("UMLLinkView", msgViewId, diagramId, msgModelId, srcViewId, tgtViewId, pointsString, { name: fullMsgName }));
+    }
+    const diagramNode = createUMLCommunicationDiagramNode(diagramId, interactionId, input.diagramName, [
+        ...lifelineViews,
+        ...messageViews
+    ]);
+    const interactionNode = createUMLInteractionNode(interactionId, modelId, input.diagramName, semanticLifelines, semanticMessages, [diagramNode]);
     const modelNode = createUMLModelNode(modelId, projectId, input.projectName ?? "Model", [interactionNode]);
     return createProjectNode(projectId, input.projectName ?? "Model", [modelNode]);
 }

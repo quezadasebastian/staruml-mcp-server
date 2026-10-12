@@ -45,11 +45,17 @@ staruml-mcp-server/
 
 ---
 
-## 4. Herramientas MCP Expuestas
-1. `generate_class_diagram`: Genera diagramas de clases con atributos, operaciones, estereotipos y las 6 relaciones formales de UML.
-2. `generate_use_case_diagram`: Genera diagramas de casos de uso con actores primarios/secundarios, límites del sistema (`System Boundary`) y relaciones (`association`, `include`, `extend`, `generalization`).
-3. `generate_sequence_diagram`: Genera diagramas de interacción de secuencia con líneas de vida y mensajes sincronizados, asíncronos y respuestas ordenados cronológicamente.
-4. `inspect_mdj_model`: Analiza un archivo `.mdj` y retorna un resumen exhaustivo de entidades, vistas, multiplicidades y relaciones.
+## 4. Herramientas MCP Expuestas (Soporte Modelo 4+1)
+1. `generate_use_case_diagram`: Casos de uso con actores, límites del sistema (`System Boundary`) y relaciones (`association`, `include`, `extend`, `generalization`) (**Vista de Escenarios +1**).
+2. `generate_class_diagram`: Clases con atributos, operaciones, visibilidades y relaciones formales de UML (**Vista Lógica**).
+3. `generate_object_diagram`: Diagramas de objetos e instancias con slots de atributos y links (**Vista Lógica**).
+4. `generate_state_machine_diagram`: Máquinas de estados reactivas con estados, pseudostados y transiciones con guardas (**Vista Lógica**).
+5. `generate_sequence_diagram`: Interacción de secuencia con líneas de vida y mensajes cronológicos (**Vista de Procesos**).
+6. `generate_activity_diagram`: Flujos de trabajo con acciones, decisiones, uniones y bifurcaciones concurrentes (**Vista de Procesos**).
+7. `generate_communication_diagram`: Colaboración estructural con enlaces y mensajes secuenciados numéricamente (**Vista de Procesos**).
+8. `generate_component_diagram`: Componentes modulares, subsistemas e interfaces provistas/requeridas (**Vista de Desarrollo**).
+9. `generate_deployment_diagram`: Nodos de infraestructura física/lógica, dispositivos y artefactos (**Vista Física / Despliegue**).
+10. `inspect_mdj_model`: Analiza un archivo `.mdj` y retorna un resumen exhaustivo de entidades, vistas, multiplicidades y relaciones (**Auditoría**).
 
 ---
 

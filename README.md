@@ -24,24 +24,32 @@ Este servidor abstrae toda esa complejidad matemática y estructural: el agente 
 ## ✨ Características Principales
 
 - **Auto-Layout Determinista:** Integra `dagre` para calcular la posición óptima de nodos y enrutamiento ortogonal de conectores, evitando colisiones o superposiciones.
-- **Soporte Multi-Diagrama:**
-  - **Casos de Uso:** Actores, fronteras de sistema (`systemBoundary`), asociaciones, `<<include>>` y `<<extend>>`.
-  - **Diagramas de Clases:** Atributos tipados, operaciones, visibilidades, herencia, interfaces, composiciones y agregaciones.
-  - **Diagramas de Secuencia:** Líneas de vida (_lifelines_) y flujo cronológico de mensajes síncronos, asíncronos y respuestas.
+- **Soporte Arquitectónico 4+1 Completo (UML 2.5.1):**
+  - **Vista de Escenarios (+1):** `generate_use_case_diagram` (actores, límites de sistema, `<<include>>`, `<<extend>>`).
+  - **Vista Lógica:** `generate_class_diagram` (clases, interfaces, herencia, composición), `generate_object_diagram` (instancias y slots), `generate_state_machine_diagram` (estados, pseudostados y transiciones).
+  - **Vista de Procesos:** `generate_sequence_diagram` (líneas de tiempo cronológicas), `generate_activity_diagram` (flujos, decisiones, forks/joins), `generate_communication_diagram` (colaboraciones y numeración jerárquica).
+  - **Vista de Desarrollo:** `generate_component_diagram` (componentes, interfaces provistas/requeridas).
+  - **Vista Física / Despliegue:** `generate_deployment_diagram` (nodos de ejecución, artefactos y rutas de comunicación).
 - **Inspección Bidireccional (`inspect_mdj_model`):** Permite a los agentes de IA leer y resumir proyectos `.mdj` existentes antes de refactorizarlos o extenderlos.
 - **Seguridad y Resiliencia:** Validación estricta con esquemas Zod, escritura atómica en disco para evitar archivos corruptos y manejo defensivo de errores.
 - **Anotaciones MCP Nativas:** Cumple con la especificación MCP al declarar `readOnlyHint`, `destructiveHint`, `idempotentHint` y `openWorldHint` en todas sus herramientas.
 
 ---
 
-## 🔒 Tabla de Herramientas y Anotaciones de Seguridad
+## 🔒 Tabla de Herramientas y Anotaciones de Seguridad (Modelo 4+1)
 
-| Herramienta MCP | Descripción | `readOnlyHint` | `destructiveHint` | `idempotentHint` | `openWorldHint` |
-|---|---|:---:|:---:|:---:|:---:|
-| `generate_class_diagram` | Genera diagrama de clases y relaciones en `.mdj`. | `false` | `true` | `true` | `false` |
-| `generate_use_case_diagram` | Genera diagrama de casos de uso y actores en `.mdj`. | `false` | `true` | `true` | `false` |
-| `generate_sequence_diagram` | Genera diagrama de interacción de secuencia en `.mdj`. | `false` | `true` | `true` | `false` |
-| `inspect_mdj_model` | Lee e inspecciona un archivo `.mdj` existente. | `true` | `false` | `true` | `false` |
+| Herramienta MCP | Vista Arquitectónica | Descripción | `readOnlyHint` | `destructiveHint` | `idempotentHint` | `openWorldHint` |
+|---|---|---|:---:|:---:|:---:|:---:|
+| `generate_use_case_diagram` | **Escenarios (+1)** | Genera diagrama de casos de uso y actores en `.mdj`. | `false` | `true` | `true` | `false` |
+| `generate_class_diagram` | **Vista Lógica** | Genera diagrama de clases y relaciones estructurales en `.mdj`. | `false` | `true` | `true` | `false` |
+| `generate_object_diagram` | **Vista Lógica** | Genera diagrama de objetos e instancias con slots de atributos en `.mdj`. | `false` | `true` | `true` | `false` |
+| `generate_state_machine_diagram` | **Vista Lógica** | Genera máquina de estados reactiva con eventos, guardas y acciones en `.mdj`. | `false` | `true` | `true` | `false` |
+| `generate_sequence_diagram` | **Vista de Procesos** | Genera interacción temporal cronológica con lifelines y mensajes en `.mdj`. | `false` | `true` | `true` | `false` |
+| `generate_activity_diagram` | **Vista de Procesos** | Genera flujos de trabajo con acciones, decisiones y paralelismo en `.mdj`. | `false` | `true` | `true` | `false` |
+| `generate_communication_diagram` | **Vista de Procesos** | Genera colaboraciones estructurales con mensajes numerados en `.mdj`. | `false` | `true` | `true` | `false` |
+| `generate_component_diagram` | **Vista de Desarrollo** | Genera arquitectura modular con componentes e interfaces en `.mdj`. | `false` | `true` | `true` | `false` |
+| `generate_deployment_diagram` | **Vista Física** | Genera infraestructura de nodos, servidores y artefactos en `.mdj`. | `false` | `true` | `true` | `false` |
+| `inspect_mdj_model` | **Auditoría / Diagnóstico** | Lee e inspecciona un archivo `.mdj` existente de forma segura. | `true` | `false` | `true` | `false` |
 
 > [!NOTE]
 > Las herramientas de generación sobreescriben de forma atómica el archivo de destino indicado en `filePath`, por lo que se marcan con `destructiveHint: true`. La herramienta `inspect_mdj_model` solo lee datos sin modificar el sistema de archivos (`readOnlyHint: true`).
