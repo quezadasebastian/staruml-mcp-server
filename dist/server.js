@@ -12,8 +12,20 @@ export function createStarUmlMcpServer() {
         name: "staruml-mcp-server",
         version: "1.0.0"
     });
+    const fileWriterAnnotations = {
+        readOnlyHint: false,
+        destructiveHint: true,
+        idempotentHint: true,
+        openWorldHint: false
+    };
+    const readOnlyAnnotations = {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false
+    };
     // Tool 1: generate_class_diagram
-    server.tool("generate_class_diagram", "Compiles an object-oriented domain model into a complete StarUML (.mdj) file with auto-calculated coordinates and spatial layout.", GenerateClassDiagramSchema.shape, async (args) => {
+    server.tool("generate_class_diagram", "Compiles an object-oriented domain model into a complete StarUML (.mdj) file with auto-calculated coordinates and spatial layout.", GenerateClassDiagramSchema.shape, fileWriterAnnotations, async (args) => {
         try {
             const validated = GenerateClassDiagramSchema.parse(args);
             const resolvedPath = path.resolve(validated.filePath);
@@ -48,7 +60,7 @@ Layout: Orthogonal DAG auto-routed using Dagre layout engine.`
         }
     });
     // Tool 2: generate_use_case_diagram
-    server.tool("generate_use_case_diagram", "Builds a Use Case diagram with actors, boundary systems, use cases, and relationships (association, include, extend, generalization).", GenerateUseCaseDiagramSchema.shape, async (args) => {
+    server.tool("generate_use_case_diagram", "Builds a Use Case diagram with actors, boundary systems, use cases, and relationships (association, include, extend, generalization).", GenerateUseCaseDiagramSchema.shape, fileWriterAnnotations, async (args) => {
         try {
             const validated = GenerateUseCaseDiagramSchema.parse(args);
             const resolvedPath = path.resolve(validated.filePath);
@@ -87,7 +99,7 @@ Layout: Left-to-Right auto-arranged layout with boundary bounds calculation.`
         }
     });
     // Tool 3: generate_sequence_diagram
-    server.tool("generate_sequence_diagram", "Creates an interaction sequence diagram with lifelines and synchronous/asynchronous/reply messages arranged in chronological vertical order.", GenerateSequenceDiagramSchema.shape, async (args) => {
+    server.tool("generate_sequence_diagram", "Creates an interaction sequence diagram with lifelines and synchronous/asynchronous/reply messages arranged in chronological vertical order.", GenerateSequenceDiagramSchema.shape, fileWriterAnnotations, async (args) => {
         try {
             const validated = GenerateSequenceDiagramSchema.parse(args);
             const resolvedPath = path.resolve(validated.filePath);
@@ -122,7 +134,7 @@ Layout: Chronological vertical timeline layout with lifeline tracking.`
         }
     });
     // Tool 4: inspect_mdj_model
-    server.tool("inspect_mdj_model", "Reads an existing .mdj file and returns a concise structural overview (list of diagrams, classes, interfaces, relationships, and methods) so the agent can understand an existing project before modifying it.", InspectMdjModelSchema.shape, async (args) => {
+    server.tool("inspect_mdj_model", "Reads an existing .mdj file and returns a concise structural overview (list of diagrams, classes, interfaces, relationships, and methods) so the agent can understand an existing project before modifying it.", InspectMdjModelSchema.shape, readOnlyAnnotations, async (args) => {
         try {
             const validated = InspectMdjModelSchema.parse(args);
             const resolvedPath = path.resolve(validated.filePath);

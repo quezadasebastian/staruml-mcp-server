@@ -7,6 +7,9 @@ import crypto from "node:crypto";
  * in the same directory and renaming it. Automatically ensures parent directories exist.
  */
 export async function writeAtomicJson(filePath: string, data: unknown): Promise<void> {
+  if (!filePath || filePath.trim().length === 0) {
+    throw new Error("Target file path cannot be empty");
+  }
   const resolvedPath = path.resolve(filePath);
   const dir = path.dirname(resolvedPath);
 

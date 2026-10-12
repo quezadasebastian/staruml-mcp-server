@@ -93,7 +93,28 @@ export interface ModelInspectionResult {
  * Inspects an existing StarUML (.mdj) file and returns a concise structural overview.
  */
 export async function inspectMdjFile(filePath: string): Promise<ModelInspectionResult> {
-  const content = await fs.readFile(filePath, "utf-8");
+  let stats;
+  try {
+    stats = await fs.stat(filePath);
+  } catch (err: unknown) {
+    const error = err as NodeJS.ErrnoException;
+    if (error.code === "ENOENT") {
+      throw new Error(`File does not exist: "${filePath}"`);
+    }
+    throw new Error(`Cannot access file "${filePath}": ${error.message}`);
+  }
+
+  if (stats.isDirectory()) {
+    throw new Error(`Target path is a directory, not a file: "${filePath}"`);
+  }
+
+  let content: string;
+  try {
+    content = await fs.readFile(filePath, "utf-8");
+  } catch (err) {
+    throw new Error(`Failed to read file "${filePath}": ${(err as Error).message}`);
+  }
+
   let root: StarUMLNode;
   try {
     root = JSON.parse(content) as StarUMLNode;

@@ -1,4 +1,9 @@
 import { z } from "zod";
+/**
+ * Reusable schema for validating StarUML (.mdj) file paths.
+ * Enforces non-empty string and valid .mdj extension.
+ */
+export declare const MdjFilePathSchema: z.ZodEffects<z.ZodString, string, string>;
 export declare const ClassAttributeSchema: z.ZodObject<{
     name: z.ZodString;
     type: z.ZodString;
@@ -164,7 +169,7 @@ export declare const ClassRelationshipSchema: z.ZodObject<{
     targetMultiplicity?: string | undefined;
 }>;
 export declare const GenerateClassDiagramSchema: z.ZodObject<{
-    filePath: z.ZodString;
+    filePath: z.ZodEffects<z.ZodString, string, string>;
     projectName: z.ZodOptional<z.ZodString>;
     diagramName: z.ZodString;
     classes: z.ZodArray<z.ZodObject<{
@@ -385,7 +390,7 @@ export declare const UseCaseRelationshipSchema: z.ZodObject<{
     targetId: string;
 }>;
 export declare const GenerateUseCaseDiagramSchema: z.ZodObject<{
-    filePath: z.ZodString;
+    filePath: z.ZodEffects<z.ZodString, string, string>;
     projectName: z.ZodOptional<z.ZodString>;
     diagramName: z.ZodString;
     actors: z.ZodArray<z.ZodObject<{
@@ -503,7 +508,7 @@ export declare const SequenceMessageSchema: z.ZodObject<{
     messageSort: "synchCall" | "asynchCall" | "reply";
 }>;
 export declare const GenerateSequenceDiagramSchema: z.ZodObject<{
-    filePath: z.ZodString;
+    filePath: z.ZodEffects<z.ZodString, string, string>;
     projectName: z.ZodOptional<z.ZodString>;
     diagramName: z.ZodString;
     lifelines: z.ZodArray<z.ZodObject<{
@@ -575,7 +580,7 @@ export type GenerateSequenceDiagramInput = z.infer<typeof GenerateSequenceDiagra
 export type LifelineEntity = z.infer<typeof LifelineEntitySchema>;
 export type SequenceMessage = z.infer<typeof SequenceMessageSchema>;
 export declare const InspectMdjModelSchema: z.ZodObject<{
-    filePath: z.ZodString;
+    filePath: z.ZodEffects<z.ZodString, string, string>;
 }, "strip", z.ZodTypeAny, {
     filePath: string;
 }, {

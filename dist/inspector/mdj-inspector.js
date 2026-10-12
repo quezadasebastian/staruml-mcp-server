@@ -3,7 +3,27 @@ import fs from "node:fs/promises";
  * Inspects an existing StarUML (.mdj) file and returns a concise structural overview.
  */
 export async function inspectMdjFile(filePath) {
-    const content = await fs.readFile(filePath, "utf-8");
+    let stats;
+    try {
+        stats = await fs.stat(filePath);
+    }
+    catch (err) {
+        const error = err;
+        if (error.code === "ENOENT") {
+            throw new Error(`File does not exist: "${filePath}"`);
+        }
+        throw new Error(`Cannot access file "${filePath}": ${error.message}`);
+    }
+    if (stats.isDirectory()) {
+        throw new Error(`Target path is a directory, not a file: "${filePath}"`);
+    }
+    let content;
+    try {
+        content = await fs.readFile(filePath, "utf-8");
+    }
+    catch (err) {
+        throw new Error(`Failed to read file "${filePath}": ${err.message}`);
+    }
     let root;
     try {
         root = JSON.parse(content);

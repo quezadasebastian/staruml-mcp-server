@@ -24,8 +24,16 @@
     "claude",
     "ai-agent"
   ],
-  "author": "",
+  "author": "Sebastián Quezada <quezadasebastian28@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/quezadasebastian/staruml-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/quezadasebastian/staruml-mcp-server/issues"
+  },
+  "homepage": "https://github.com/quezadasebastian/staruml-mcp-server#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
     "dagre": "^0.8.5",
@@ -38,6 +46,6 @@
     "lodash": "^4.18.1",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
-    "vitest": "^3.0.8"
+    "vitest": "^4.1.11"
   }
 }
